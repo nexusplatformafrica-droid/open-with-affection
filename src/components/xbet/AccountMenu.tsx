@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ComponentProps, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import {
   ArrowDownToLine,
@@ -92,7 +92,7 @@ function WhopExpressPayment({
   }
 
   return (
-    <WhopElements elements={elements as React.ComponentProps<typeof WhopElements>["elements"]}>
+    <WhopElements elements={elements as ComponentProps<typeof WhopElements>["elements"]}>
       <Checkout
         plan={planId}
         metadata={{ reference }}
