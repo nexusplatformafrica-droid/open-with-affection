@@ -27,22 +27,22 @@ function PaymentMethodsPage() {
       <div className="space-y-3">
         <section className="rounded-2xl bg-xb-panel p-4 md:p-5">
           <h2 className="text-lg font-black text-xb-text">How to deposit</h2>
-          <ol className="mt-2 list-decimal pl-5 text-sm leading-relaxed text-xb-muted">
+          <ol className="mt-2 list-decimal pl-5 text-sm leading-relaxed text-xb-text-muted">
             <li>Log in and open your account menu.</li>
             <li>Choose Deposit and pick your network.</li>
             <li>Enter the amount and confirm the prompt on your phone.</li>
           </ol>
-          <p className="mt-2 text-sm text-xb-muted">Withdrawals go back to the same mobile money number.</p>
+          <p className="mt-2 text-sm text-xb-text-muted">Withdrawals go back to the same mobile money number.</p>
         </section>
         <div className="grid gap-3 md:grid-cols-2">
           {PAY_COUNTRIES.map((c) => (
             <section key={c.code} className="rounded-2xl bg-xb-panel p-4">
               <h2 className="text-base font-black text-xb-text">{c.flag} {c.name} ({c.currency})</h2>
-              <ul className="mt-2 list-disc pl-5 text-sm text-xb-muted">
+              <ul className="mt-2 list-disc pl-5 text-sm text-xb-text-muted">
                 {c.methods.map((m) => <li key={m.id}>{m.label}</li>)}
               </ul>
-              <p className="mt-1 text-xs text-xb-muted">Mobile: {c.minMobile.toLocaleString()} – {c.maxMobile.toLocaleString()} {c.currency}</p>
-              <Link to="/betting/$country" params={{ country: c.code.toLowerCase() }} className="mt-2 inline-block text-sm font-bold text-xb-accent">Betting in {c.name} →</Link>
+              <p className="mt-1 text-xs text-xb-text-muted">Mobile: {c.minMobile.toLocaleString()} – {c.maxMobile.toLocaleString()} {c.currency}</p>
+              <Link to="/betting/$country" params={{ country: c.code.toLowerCase() }} className="mt-2 inline-block text-sm font-bold text-xb-blue">Betting in {c.name} →</Link>
             </section>
           ))}
         </div>
