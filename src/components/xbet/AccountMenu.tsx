@@ -88,10 +88,44 @@ function MoneyForm({ kind }: { kind: "deposit" | "withdraw" }) {
     setAmount("");
   };
 
+  const whopMethod = kind === "deposit" ? WHOP_METHODS.find((m) => m.id === method) : undefined;
+  const usd = rates && amount ? convert(Number(amount), activeCurrency, "USD", rates) : null;
+
   const submit = async () => {
     const n = Number(amount);
     if (!Number.isFinite(n) || n <= 0) {
       toast.error("Enter a valid amount");
+      return;
+    }
+    if (whopMethod) {
+      if (!user) return;
+      if (usd === null || usd < 1) {
+        toast.error("Amount is below the $1 minimum for this method");
+        return;
+      }
+      setBusy(true);
+      try {
+        const reference = makeReference("BPW");
+        const co = await createCheckout({
+          data: { amountUsd: usd, reference, userId: user.id, method: whopMethod.label },
+        });
+        await createPaymentSession({
+          userId: user.id,
+          userName: user.name,
+          kind: "deposit",
+          amount: n,
+          currency: activeCurrency,
+          method: `Whop · ${whopMethod.label}`,
+          msisdn: "",
+          reference,
+          internalReference: `whop:${co.planId}`,
+        });
+        setWhopSession(co.id);
+      } catch (err) {
+        toast.error((err as Error).message);
+      } finally {
+        setBusy(false);
+      }
       return;
     }
     if (n < limits.min || n > limits.max) {
@@ -122,6 +156,39 @@ function MoneyForm({ kind }: { kind: "deposit" | "withdraw" }) {
       setBusy(false);
     }
   };
+
+  if (whopSession) {
+    return (
+      <div className="space-y-2">
+        <div className="flex items-center justify-between text-[12px] text-xb-text">
+          <span className="font-bold">
+            {whopMethod?.label ?? "Pay"} · {formatMoney(Number(amount), activeCurrency)}
+          </span>
+          <button
+            onClick={() => setWhopSession(null)}
+            className="rounded-lg bg-xb-odds px-2 py-1 text-[11px] hover:bg-xb-odds-hover"
+          >
+            Back
+          </button>
+        </div>
+        <div className="min-h-[420px] overflow-hidden rounded-xl bg-xb-panel-alt">
+          <WhopCheckoutEmbed
+            sessionId={whopSession}
+            skipRedirect
+            onComplete={() => {
+              toast.success("Payment received — your balance updates in a moment");
+              setWhopSession(null);
+              setAmount("");
+            }}
+          />
+        </div>
+        <p className="text-[10.5px] text-xb-text-muted">
+          Secured by Whop. Card, Google Pay, Apple Pay, PayPal and local methods appear based on
+          your location.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-2">
