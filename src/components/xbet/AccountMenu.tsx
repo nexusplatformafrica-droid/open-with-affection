@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ComponentProps, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import {
   ArrowDownToLine,
   ArrowUpFromLine,
@@ -12,6 +13,7 @@ import {
   Ticket,
   Trash2,
   User as UserIcon,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { money, useAuth } from "./AuthContext";
@@ -31,19 +33,13 @@ import {
   makeReference,
 } from "@/lib/payments";
 import { useServerFn } from "@tanstack/react-start";
-import { WhopCheckoutEmbed } from "@whop/checkout/react";
+import { Checkout, ExpressCheckoutElement, WhopElements } from "@whop/elements-react";
 import { createWhopCheckout } from "@/lib/whop.functions";
 import { createPaymentSession } from "@/lib/payment-sessions";
 import { convert, useFxRates } from "@/lib/fx";
 
-/** Deposit methods served by Whop's embedded checkout. */
-const WHOP_METHODS = [
-  { id: "whop-card", label: "Card (Visa / Mastercard)" },
-  { id: "whop-gpay", label: "Google Pay" },
-  { id: "whop-apple", label: "Apple Pay" },
-  { id: "whop-paypal", label: "PayPal" },
-  { id: "whop-other", label: "More (local methods)" },
-];
+/** Whop Express Checkout supplies the genuine wallet buttons available on the device. */
+const WHOP_EXPRESS = { id: "whop-express", label: "Apple Pay / Google Pay" };
 
 const SECTIONS = [
   { key: "bets", label: "My bets", icon: Ticket },
@@ -69,6 +65,60 @@ function Empty({ text }: { text: string }) {
   );
 }
 
+function WhopExpressPayment({
+  planId,
+  reference,
+  onComplete,
+}: {
+  planId: string;
+  reference: string;
+  onComplete: () => void;
+}) {
+  const [elements, setElements] = useState<ComponentProps<typeof WhopElements>["elements"]>(null);
+  const [walletReady, setWalletReady] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    void import("@whop/elements").then(({ loadWhop }) => {
+      if (active) setElements(loadWhop());
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  if (!elements) {
+    return <div className="h-12 animate-pulse rounded bg-xb-odds" aria-label="Loading payment buttons" />;
+  }
+
+  return (
+    <WhopElements elements={elements}>
+      <Checkout
+        plan={planId}
+        metadata={{ reference }}
+        returnUrl={window.location.href}
+        onComplete={(result) => {
+          if (result.result === "payment") onComplete();
+        }}
+      >
+        <ExpressCheckoutElement
+          wallets={["apple_pay", "google_pay"]}
+          layout="vertical"
+          onReady={() => setWalletReady(true)}
+          onError={(error) => toast.error(error.message)}
+          fallback={<div className="h-12 animate-pulse rounded bg-xb-odds" />}
+        />
+        {!walletReady && (
+          <p className="mt-2 text-center text-[11px] text-xb-text-muted">
+            A real Apple Pay or Google Pay button appears only on a supported device with a wallet
+            set up.
+          </p>
+        )}
+      </Checkout>
+    </WhopElements>
+  );
+}
+
 function MoneyForm({ kind }: { kind: "deposit" | "withdraw" }) {
   const { deposit, withdraw, balance, withdrawable, bonus, currency, user } = useAuth();
   const home =
@@ -91,7 +141,7 @@ function MoneyForm({ kind }: { kind: "deposit" | "withdraw" }) {
   const [phone, setPhone] = useState(user?.phone ?? "");
   const [method, setMethod] = useState(methods[0]!.id);
   const [busy, setBusy] = useState(false);
-  const [whopSession, setWhopSession] = useState<string | null>(null);
+  const [whopSession, setWhopSession] = useState<{ planId: string; reference: string } | null>(null);
   const rates = useFxRates();
   const createCheckout = useServerFn(createWhopCheckout);
 
@@ -106,7 +156,7 @@ function MoneyForm({ kind }: { kind: "deposit" | "withdraw" }) {
     setAmount("");
   };
 
-  const whopMethod = kind === "deposit" ? WHOP_METHODS.find((m) => m.id === method) : undefined;
+  const whopMethod = kind === "deposit" && method === WHOP_EXPRESS.id ? WHOP_EXPRESS : undefined;
   const usd = rates && amount ? convert(Number(amount), activeCurrency, "USD", rates) : null;
 
   const submit = async () => {
@@ -138,7 +188,7 @@ function MoneyForm({ kind }: { kind: "deposit" | "withdraw" }) {
           reference,
           internalReference: `whop:${co.planId}`,
         });
-        setWhopSession(co.id);
+        setWhopSession({ planId: co.planId, reference });
       } catch (err) {
         toast.error((err as Error).message);
       } finally {
@@ -180,7 +230,7 @@ function MoneyForm({ kind }: { kind: "deposit" | "withdraw" }) {
       <div className="space-y-2">
         <div className="flex items-center justify-between text-[12px] text-xb-text">
           <span className="font-bold">
-            {whopMethod?.label ?? "Pay"} · {formatMoney(Number(amount), activeCurrency)}
+            One-click deposit · {formatMoney(Number(amount), activeCurrency)}
           </span>
           <button
             onClick={() => setWhopSession(null)}
@@ -189,10 +239,10 @@ function MoneyForm({ kind }: { kind: "deposit" | "withdraw" }) {
             Back
           </button>
         </div>
-        <div className="min-h-[420px] overflow-hidden rounded-xl bg-xb-panel-alt">
-          <WhopCheckoutEmbed
-            sessionId={whopSession}
-            skipRedirect
+        <div className="rounded-xl border border-xb-line bg-xb-panel-alt p-4">
+          <WhopExpressPayment
+            planId={whopSession.planId}
+            reference={whopSession.reference}
             onComplete={() => {
               toast.success("Payment received — your balance updates in a moment");
               setWhopSession(null);
@@ -201,8 +251,8 @@ function MoneyForm({ kind }: { kind: "deposit" | "withdraw" }) {
           />
         </div>
         <p className="text-[10.5px] text-xb-text-muted">
-          Secured by Whop. Card, Google Pay, Apple Pay, PayPal and local methods appear based on
-          your location.
+          Secured by Whop. The wallet sheet uses the cards already saved in Apple Pay or Google
+          Pay—your card details never reach BET PLUS+.
         </p>
       </div>
     );
@@ -265,7 +315,7 @@ function MoneyForm({ kind }: { kind: "deposit" | "withdraw" }) {
       </div>
 
       <div className="grid grid-cols-2 gap-2">
-        {[...methods, ...(kind === "deposit" ? WHOP_METHODS : [])].map((m) => (
+        {[...methods, ...(kind === "deposit" ? [WHOP_EXPRESS] : [])].map((m) => (
           <button
             key={m.id}
             onClick={() => setMethod(m.id)}
@@ -325,7 +375,13 @@ function MoneyForm({ kind }: { kind: "deposit" | "withdraw" }) {
         disabled={busy}
         className="w-full rounded-xl bg-xb-green py-2.5 text-[13px] font-bold text-xb-on-dark transition-colors hover:bg-xb-green-dark disabled:opacity-60"
       >
-        {busy ? "PROCESSING…" : kind === "deposit" ? "DEPOSIT" : "WITHDRAW"}
+        {busy
+          ? "PROCESSING…"
+          : whopMethod
+            ? "CONTINUE TO ONE-CLICK PAY"
+            : kind === "deposit"
+              ? "DEPOSIT"
+              : "WITHDRAW"}
       </button>
     </div>
   );
@@ -519,12 +575,69 @@ export function SectionBody({ section }: { section: SectionKey }) {
   );
 }
 
+function PaymentFloat({
+  section,
+  onClose,
+}: {
+  section: "deposit" | "withdraw";
+  onClose: () => void;
+}) {
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  const modal: ReactNode = (
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-xb-header/75 p-3 backdrop-blur-sm"
+      role="presentation"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+    >
+      <section
+        role="dialog"
+        aria-modal="true"
+        aria-label={section === "deposit" ? "Deposit money" : "Withdraw money"}
+        className="max-h-[calc(100dvh-24px)] w-full max-w-[520px] overflow-y-auto rounded-xl bg-xb-panel shadow-2xl ring-1 ring-xb-line"
+      >
+        <header className="sticky top-0 z-10 flex items-center justify-between border-b border-xb-line bg-xb-panel px-4 py-3">
+          <div>
+            <p className="text-[10px] font-bold uppercase text-xb-text-muted">BET PLUS+ wallet</p>
+            <h2 className="text-[16px] font-black text-xb-text">
+              {section === "deposit" ? "Deposit funds" : "Withdraw funds"}
+            </h2>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close"
+            title="Close"
+            className="flex h-8 w-8 items-center justify-center rounded bg-xb-odds text-xb-text hover:bg-xb-odds-hover"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </header>
+        <div className="p-4">
+          <MoneyForm kind={section} />
+        </div>
+      </section>
+    </div>
+  );
+
+  return createPortal(modal, document.body);
+}
+
 /** Hover-opened account panel — everything happens inside the float, no extra pages. */
 export function AccountMenu() {
   const { user, openLogin, openRegister, balance, currency } = useAuth();
   const [open, setOpen] = useState(false);
   const [section, setSection] = useState<SectionKey>("bets");
   const [locked, setLocked] = useState(false);
+  const [paymentSection, setPaymentSection] = useState<"deposit" | "withdraw" | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const rootRef = useRef<HTMLDivElement | null>(null);
 
@@ -542,6 +655,11 @@ export function AccountMenu() {
   useEffect(() => {
     const onOpen = (e: Event) => {
       const s = (e as CustomEvent<SectionKey>).detail;
+      if (s === "deposit" || s === "withdraw") {
+        setPaymentSection(s);
+        setOpen(false);
+        return;
+      }
       setSection(s);
       setLocked(true);
       setOpen(true);
@@ -562,6 +680,7 @@ export function AccountMenu() {
 
   return (
     <div className="relative" ref={rootRef} onMouseEnter={show} onMouseLeave={hide}>
+      {paymentSection && <PaymentFloat section={paymentSection} onClose={() => setPaymentSection(null)} />}
       <button
         onClick={() => {
           if (timer.current) clearTimeout(timer.current);
@@ -660,8 +779,17 @@ export function AccountMenu() {
                   {SECTIONS.map((s) => (
                     <button
                       key={s.key}
-                      onMouseEnter={() => setSection(s.key)}
-                      onClick={() => setSection(s.key)}
+                      onMouseEnter={() => {
+                        if (s.key !== "deposit" && s.key !== "withdraw") setSection(s.key);
+                      }}
+                      onClick={() => {
+                        if (s.key === "deposit" || s.key === "withdraw") {
+                          setPaymentSection(s.key);
+                          setOpen(false);
+                        } else {
+                          setSection(s.key);
+                        }
+                      }}
                       className={`mb-0.5 flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-[12px] transition-colors ${
                         section === s.key
                           ? "bg-xb-blue text-xb-on-dark"
