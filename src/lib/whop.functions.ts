@@ -105,13 +105,23 @@ export const whopPayout = createServerFn({ method: "POST" })
         amount: z.number().min(1),
         currency: z.string().length(3),
         payoutMethodId: z.string().min(3),
-        adminPin: z.string().min(4),
+        idToken: z.string().min(20),
       })
       .parse(d),
   )
   .handler(async ({ data }) => {
-    // Simple server-side guard so the public endpoint can't drain the balance.
-    if (data.adminPin !== "0760734679") throw new Error("Not allowed");
+    // Verify the caller is the signed-in admin before moving any money.
+    const { firebaseConfig } = await import("./firebase-config");
+    const { ADMIN_EMAIL, ADMIN_PHONE, authEmailFor } = await import("./identity");
+    const look = await fetch(
+      `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${firebaseConfig.apiKey}`,
+      { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ idToken: data.idToken }) },
+    );
+    const who = (await look.json().catch(() => ({}))) as { users?: Array<{ email?: string }> };
+    const email = (who.users?.[0]?.email ?? "").toLowerCase();
+    if (!look.ok || (email !== ADMIN_EMAIL && email !== authEmailFor(ADMIN_PHONE))) {
+      throw new Error("Only the admin can send payouts");
+    }
     const res = await whop("/payouts", {
       method: "POST",
       body: JSON.stringify({
