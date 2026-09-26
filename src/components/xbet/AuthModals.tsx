@@ -303,7 +303,7 @@ function LoginModal() {
 
 function RegisterModal() {
   const { register, closeModal, openLogin, busy } = useAuth();
-  const [mode, setMode] = useState<"one-click" | "phone">("one-click");
+  const [mode, setMode] = useState<"one-click" | "phone">("phone");
   const [country, setCountry] = useState<PayCountry>(DEFAULT_COUNTRY);
   const [currency, setCurrency] = useState(DEFAULT_COUNTRY.currency);
   const [geoBlocked, setGeoBlocked] = useState(false);

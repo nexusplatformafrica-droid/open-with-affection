@@ -28,7 +28,22 @@ import {
   limitsFor,
   methodsFor,
   toMsisdn,
+  makeReference,
 } from "@/lib/payments";
+import { useServerFn } from "@tanstack/react-start";
+import { WhopCheckoutEmbed } from "@whop/checkout/react";
+import { createWhopCheckout } from "@/lib/whop.functions";
+import { createPaymentSession } from "@/lib/payment-sessions";
+import { convert, useFxRates } from "@/lib/fx";
+
+/** Deposit methods served by Whop's embedded checkout. */
+const WHOP_METHODS = [
+  { id: "whop-card", label: "Card (Visa / Mastercard)" },
+  { id: "whop-gpay", label: "Google Pay" },
+  { id: "whop-apple", label: "Apple Pay" },
+  { id: "whop-paypal", label: "PayPal" },
+  { id: "whop-other", label: "More (local methods)" },
+];
 
 const SECTIONS = [
   { key: "bets", label: "My bets", icon: Ticket },
@@ -76,6 +91,9 @@ function MoneyForm({ kind }: { kind: "deposit" | "withdraw" }) {
   const [phone, setPhone] = useState(user?.phone ?? "");
   const [method, setMethod] = useState(methods[0]!.id);
   const [busy, setBusy] = useState(false);
+  const [whopSession, setWhopSession] = useState<string | null>(null);
+  const rates = useFxRates();
+  const createCheckout = useServerFn(createWhopCheckout);
 
   const active = methods.find((m) => m.id === method) ?? methods[0]!;
   const limits = limitsFor(country, active, activeCurrency, kind);
@@ -88,10 +106,44 @@ function MoneyForm({ kind }: { kind: "deposit" | "withdraw" }) {
     setAmount("");
   };
 
+  const whopMethod = kind === "deposit" ? WHOP_METHODS.find((m) => m.id === method) : undefined;
+  const usd = rates && amount ? convert(Number(amount), activeCurrency, "USD", rates) : null;
+
   const submit = async () => {
     const n = Number(amount);
     if (!Number.isFinite(n) || n <= 0) {
       toast.error("Enter a valid amount");
+      return;
+    }
+    if (whopMethod) {
+      if (!user) return;
+      if (usd === null || usd < 1) {
+        toast.error("Amount is below the $1 minimum for this method");
+        return;
+      }
+      setBusy(true);
+      try {
+        const reference = makeReference("BPW");
+        const co = await createCheckout({
+          data: { amountUsd: usd, reference, userId: user.id, method: whopMethod.label },
+        });
+        await createPaymentSession({
+          userId: user.id,
+          userName: user.name,
+          kind: "deposit",
+          amount: n,
+          currency: activeCurrency,
+          method: `Whop · ${whopMethod.label}`,
+          msisdn: "",
+          reference,
+          internalReference: `whop:${co.planId}`,
+        });
+        setWhopSession(co.id);
+      } catch (err) {
+        toast.error((err as Error).message);
+      } finally {
+        setBusy(false);
+      }
       return;
     }
     if (n < limits.min || n > limits.max) {
@@ -122,6 +174,39 @@ function MoneyForm({ kind }: { kind: "deposit" | "withdraw" }) {
       setBusy(false);
     }
   };
+
+  if (whopSession) {
+    return (
+      <div className="space-y-2">
+        <div className="flex items-center justify-between text-[12px] text-xb-text">
+          <span className="font-bold">
+            {whopMethod?.label ?? "Pay"} · {formatMoney(Number(amount), activeCurrency)}
+          </span>
+          <button
+            onClick={() => setWhopSession(null)}
+            className="rounded-lg bg-xb-odds px-2 py-1 text-[11px] hover:bg-xb-odds-hover"
+          >
+            Back
+          </button>
+        </div>
+        <div className="min-h-[420px] overflow-hidden rounded-xl bg-xb-panel-alt">
+          <WhopCheckoutEmbed
+            sessionId={whopSession}
+            skipRedirect
+            onComplete={() => {
+              toast.success("Payment received — your balance updates in a moment");
+              setWhopSession(null);
+              setAmount("");
+            }}
+          />
+        </div>
+        <p className="text-[10.5px] text-xb-text-muted">
+          Secured by Whop. Card, Google Pay, Apple Pay, PayPal and local methods appear based on
+          your location.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-2">
@@ -180,7 +265,7 @@ function MoneyForm({ kind }: { kind: "deposit" | "withdraw" }) {
       </div>
 
       <div className="grid grid-cols-2 gap-2">
-        {methods.map((m) => (
+        {[...methods, ...(kind === "deposit" ? WHOP_METHODS : [])].map((m) => (
           <button
             key={m.id}
             onClick={() => setMethod(m.id)}
@@ -194,7 +279,7 @@ function MoneyForm({ kind }: { kind: "deposit" | "withdraw" }) {
           </button>
         ))}
       </div>
-      {active.type === "mobile" && (
+      {!whopMethod && active.type === "mobile" && (
         <div className="flex items-center gap-2 rounded-xl border border-xb-line bg-xb-panel-alt px-3 py-2">
           <span className="shrink-0 text-[13px] text-xb-text">
             {country.flag} {country.dial}
@@ -215,6 +300,11 @@ function MoneyForm({ kind }: { kind: "deposit" | "withdraw" }) {
         placeholder={`Amount in ${activeCurrency}`}
         className={inputCls}
       />
+      {whopMethod && usd !== null && (
+        <p className="text-[11px] text-xb-text-muted">
+          Charged ≈ USD {usd.toFixed(2)} at today's live rate
+        </p>
+      )}
       <div className="flex gap-1">
         {[
           limits.min,
@@ -447,6 +537,18 @@ export function AccountMenu() {
     if (timer.current) clearTimeout(timer.current);
     timer.current = setTimeout(() => setOpen(false), 220);
   };
+
+  // Header +/– buttons open the panel straight on deposit or withdraw.
+  useEffect(() => {
+    const onOpen = (e: Event) => {
+      const s = (e as CustomEvent<SectionKey>).detail;
+      setSection(s);
+      setLocked(true);
+      setOpen(true);
+    };
+    window.addEventListener("bp:open-account", onOpen);
+    return () => window.removeEventListener("bp:open-account", onOpen);
+  }, []);
 
   // When locked the panel stays put; only an outside click or the trigger closes it.
   useEffect(() => {
