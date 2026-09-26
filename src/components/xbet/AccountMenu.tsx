@@ -28,7 +28,22 @@ import {
   limitsFor,
   methodsFor,
   toMsisdn,
+  makeReference,
 } from "@/lib/payments";
+import { useServerFn } from "@tanstack/react-start";
+import { WhopCheckoutEmbed } from "@whop/checkout/react";
+import { createWhopCheckout } from "@/lib/whop.functions";
+import { createPaymentSession } from "@/lib/payment-sessions";
+import { convert, useFxRates } from "@/lib/fx";
+
+/** Deposit methods served by Whop's embedded checkout. */
+const WHOP_METHODS = [
+  { id: "whop-card", label: "Card (Visa / Mastercard)" },
+  { id: "whop-gpay", label: "Google Pay" },
+  { id: "whop-apple", label: "Apple Pay" },
+  { id: "whop-paypal", label: "PayPal" },
+  { id: "whop-other", label: "More (local methods)" },
+];
 
 const SECTIONS = [
   { key: "bets", label: "My bets", icon: Ticket },
@@ -76,6 +91,9 @@ function MoneyForm({ kind }: { kind: "deposit" | "withdraw" }) {
   const [phone, setPhone] = useState(user?.phone ?? "");
   const [method, setMethod] = useState(methods[0]!.id);
   const [busy, setBusy] = useState(false);
+  const [whopSession, setWhopSession] = useState<string | null>(null);
+  const rates = useFxRates();
+  const createCheckout = useServerFn(createWhopCheckout);
 
   const active = methods.find((m) => m.id === method) ?? methods[0]!;
   const limits = limitsFor(country, active, activeCurrency, kind);
