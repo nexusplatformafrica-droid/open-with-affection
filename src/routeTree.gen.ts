@@ -18,10 +18,12 @@ import { Route as CountriesRouteImport } from './routes/countries'
 import { Route as FaqRouteImport } from './routes/faq'
 import { Route as LuckyWinnerRouteImport } from './routes/lucky-winner'
 import { Route as PartnershipRouteImport } from './routes/partnership'
+import { Route as PaymentMethodsRouteImport } from './routes/payment-methods'
 import { Route as PlayersRouteImport } from './routes/players'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ResponsibleGamingRouteImport } from './routes/responsible-gaming'
 import { Route as ResultsRouteImport } from './routes/results'
+import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as RoyalFortuneRouteImport } from './routes/royal-fortune'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SlotRouteImport } from './routes/slot'
@@ -35,7 +37,9 @@ import { Route as AdminCleanupRouteImport } from './routes/admin.cleanup'
 import { Route as AdminContentRouteImport } from './routes/admin.content'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminWalletRouteImport } from './routes/admin.wallet'
+import { Route as BettingCountryRouteImport } from './routes/betting.$country'
 import { Route as MatchMatchIdRouteImport } from './routes/match.$matchId'
+import { Route as SitemapsNameRouteImport } from './routes/sitemaps.$name'
 import { Route as WinnerTicketWinnerIdRouteImport } from './routes/winner-ticket.$winnerId'
 import { Route as WinnerWinnerIdRouteImport } from './routes/winner.$winnerId'
 import { Route as AdminActivitiesIndexRouteImport } from './routes/admin.activities.index'
@@ -104,6 +108,11 @@ const PartnershipRoute = PartnershipRouteImport.update({
   path: '/partnership',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PaymentMethodsRoute = PaymentMethodsRouteImport.update({
+  id: '/payment-methods',
+  path: '/payment-methods',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PlayersRoute = PlayersRouteImport.update({
   id: '/players',
   path: '/players',
@@ -122,6 +131,11 @@ const ResponsibleGamingRoute = ResponsibleGamingRouteImport.update({
 const ResultsRoute = ResultsRouteImport.update({
   id: '/results',
   path: '/results',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RobotsDottxtRoute = RobotsDottxtRouteImport.update({
+  id: '/robots.txt',
+  path: '/robots.txt',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RoyalFortuneRoute = RoyalFortuneRouteImport.update({
@@ -189,9 +203,19 @@ const AdminWalletRoute = AdminWalletRouteImport.update({
   path: '/wallet',
   getParentRoute: () => AdminRoute,
 } as any)
+const BettingCountryRoute = BettingCountryRouteImport.update({
+  id: '/betting/$country',
+  path: '/betting/$country',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MatchMatchIdRoute = MatchMatchIdRouteImport.update({
   id: '/match/$matchId',
   path: '/match/$matchId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapsNameRoute = SitemapsNameRouteImport.update({
+  id: '/sitemaps/$name',
+  path: '/sitemaps/$name',
   getParentRoute: () => rootRouteImport,
 } as any)
 const WinnerTicketWinnerIdRoute = WinnerTicketWinnerIdRouteImport.update({
@@ -320,10 +344,12 @@ export interface FileRoutesByFullPath {
   '/faq': typeof FaqRoute
   '/lucky-winner': typeof LuckyWinnerRoute
   '/partnership': typeof PartnershipRoute
+  '/payment-methods': typeof PaymentMethodsRoute
   '/players': typeof PlayersRoute
   '/privacy': typeof PrivacyRoute
   '/responsible-gaming': typeof ResponsibleGamingRoute
   '/results': typeof ResultsRoute
+  '/robots.txt': typeof RobotsDottxtRoute
   '/royal-fortune': typeof RoyalFortuneRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/slot': typeof SlotRoute
@@ -336,7 +362,9 @@ export interface FileRoutesByFullPath {
   '/admin/content': typeof AdminContentRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/wallet': typeof AdminWalletRoute
+  '/betting/$country': typeof BettingCountryRoute
   '/match/$matchId': typeof MatchMatchIdRoute
+  '/sitemaps/$name': typeof SitemapsNameRoute
   '/winner-ticket/$winnerId': typeof WinnerTicketWinnerIdRoute
   '/winner/$winnerId': typeof WinnerWinnerIdRoute
   '/admin/': typeof AdminIndexRoute
@@ -370,10 +398,12 @@ export interface FileRoutesByTo {
   '/faq': typeof FaqRoute
   '/lucky-winner': typeof LuckyWinnerRoute
   '/partnership': typeof PartnershipRoute
+  '/payment-methods': typeof PaymentMethodsRoute
   '/players': typeof PlayersRoute
   '/privacy': typeof PrivacyRoute
   '/responsible-gaming': typeof ResponsibleGamingRoute
   '/results': typeof ResultsRoute
+  '/robots.txt': typeof RobotsDottxtRoute
   '/royal-fortune': typeof RoyalFortuneRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/slot': typeof SlotRoute
@@ -386,7 +416,9 @@ export interface FileRoutesByTo {
   '/admin/content': typeof AdminContentRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/wallet': typeof AdminWalletRoute
+  '/betting/$country': typeof BettingCountryRoute
   '/match/$matchId': typeof MatchMatchIdRoute
+  '/sitemaps/$name': typeof SitemapsNameRoute
   '/winner-ticket/$winnerId': typeof WinnerTicketWinnerIdRoute
   '/winner/$winnerId': typeof WinnerWinnerIdRoute
   '/admin': typeof AdminIndexRoute
@@ -422,10 +454,12 @@ export interface FileRoutesById {
   '/faq': typeof FaqRoute
   '/lucky-winner': typeof LuckyWinnerRoute
   '/partnership': typeof PartnershipRoute
+  '/payment-methods': typeof PaymentMethodsRoute
   '/players': typeof PlayersRoute
   '/privacy': typeof PrivacyRoute
   '/responsible-gaming': typeof ResponsibleGamingRoute
   '/results': typeof ResultsRoute
+  '/robots.txt': typeof RobotsDottxtRoute
   '/royal-fortune': typeof RoyalFortuneRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/slot': typeof SlotRoute
@@ -438,7 +472,9 @@ export interface FileRoutesById {
   '/admin/content': typeof AdminContentRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/wallet': typeof AdminWalletRoute
+  '/betting/$country': typeof BettingCountryRoute
   '/match/$matchId': typeof MatchMatchIdRoute
+  '/sitemaps/$name': typeof SitemapsNameRoute
   '/winner-ticket/$winnerId': typeof WinnerTicketWinnerIdRoute
   '/winner/$winnerId': typeof WinnerWinnerIdRoute
   '/admin/': typeof AdminIndexRoute
@@ -475,10 +511,12 @@ export interface FileRouteTypes {
     | '/faq'
     | '/lucky-winner'
     | '/partnership'
+    | '/payment-methods'
     | '/players'
     | '/privacy'
     | '/responsible-gaming'
     | '/results'
+    | '/robots.txt'
     | '/royal-fortune'
     | '/sitemap.xml'
     | '/slot'
@@ -491,7 +529,9 @@ export interface FileRouteTypes {
     | '/admin/content'
     | '/admin/settings'
     | '/admin/wallet'
+    | '/betting/$country'
     | '/match/$matchId'
+    | '/sitemaps/$name'
     | '/winner-ticket/$winnerId'
     | '/winner/$winnerId'
     | '/admin/'
@@ -525,10 +565,12 @@ export interface FileRouteTypes {
     | '/faq'
     | '/lucky-winner'
     | '/partnership'
+    | '/payment-methods'
     | '/players'
     | '/privacy'
     | '/responsible-gaming'
     | '/results'
+    | '/robots.txt'
     | '/royal-fortune'
     | '/sitemap.xml'
     | '/slot'
@@ -541,7 +583,9 @@ export interface FileRouteTypes {
     | '/admin/content'
     | '/admin/settings'
     | '/admin/wallet'
+    | '/betting/$country'
     | '/match/$matchId'
+    | '/sitemaps/$name'
     | '/winner-ticket/$winnerId'
     | '/winner/$winnerId'
     | '/admin'
@@ -576,10 +620,12 @@ export interface FileRouteTypes {
     | '/faq'
     | '/lucky-winner'
     | '/partnership'
+    | '/payment-methods'
     | '/players'
     | '/privacy'
     | '/responsible-gaming'
     | '/results'
+    | '/robots.txt'
     | '/royal-fortune'
     | '/sitemap.xml'
     | '/slot'
@@ -592,7 +638,9 @@ export interface FileRouteTypes {
     | '/admin/content'
     | '/admin/settings'
     | '/admin/wallet'
+    | '/betting/$country'
     | '/match/$matchId'
+    | '/sitemaps/$name'
     | '/winner-ticket/$winnerId'
     | '/winner/$winnerId'
     | '/admin/'
@@ -628,10 +676,12 @@ export interface RootRouteChildren {
   FaqRoute: typeof FaqRoute
   LuckyWinnerRoute: typeof LuckyWinnerRoute
   PartnershipRoute: typeof PartnershipRoute
+  PaymentMethodsRoute: typeof PaymentMethodsRoute
   PlayersRoute: typeof PlayersRoute
   PrivacyRoute: typeof PrivacyRoute
   ResponsibleGamingRoute: typeof ResponsibleGamingRoute
   ResultsRoute: typeof ResultsRoute
+  RobotsDottxtRoute: typeof RobotsDottxtRoute
   RoyalFortuneRoute: typeof RoyalFortuneRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SlotRoute: typeof SlotRoute
@@ -640,7 +690,9 @@ export interface RootRouteChildren {
   TermsRoute: typeof TermsRoute
   TopscorersRoute: typeof TopscorersRoute
   VirtualRoute: typeof VirtualRoute
+  BettingCountryRoute: typeof BettingCountryRoute
   MatchMatchIdRoute: typeof MatchMatchIdRoute
+  SitemapsNameRoute: typeof SitemapsNameRoute
   WinnerTicketWinnerIdRoute: typeof WinnerTicketWinnerIdRoute
   WinnerWinnerIdRoute: typeof WinnerWinnerIdRoute
   ApiPublicTimeRoute: typeof ApiPublicTimeRoute
@@ -716,6 +768,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PartnershipRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/payment-methods': {
+      id: '/payment-methods'
+      path: '/payment-methods'
+      fullPath: '/payment-methods'
+      preLoaderRoute: typeof PaymentMethodsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/players': {
       id: '/players'
       path: '/players'
@@ -742,6 +801,13 @@ declare module '@tanstack/react-router' {
       path: '/results'
       fullPath: '/results'
       preLoaderRoute: typeof ResultsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/robots.txt': {
+      id: '/robots.txt'
+      path: '/robots.txt'
+      fullPath: '/robots.txt'
+      preLoaderRoute: typeof RobotsDottxtRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/royal-fortune': {
@@ -835,11 +901,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminWalletRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/betting/$country': {
+      id: '/betting/$country'
+      path: '/betting/$country'
+      fullPath: '/betting/$country'
+      preLoaderRoute: typeof BettingCountryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/match/$matchId': {
       id: '/match/$matchId'
       path: '/match/$matchId'
       fullPath: '/match/$matchId'
       preLoaderRoute: typeof MatchMatchIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemaps/$name': {
+      id: '/sitemaps/$name'
+      path: '/sitemaps/$name'
+      fullPath: '/sitemaps/$name'
+      preLoaderRoute: typeof SitemapsNameRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/winner-ticket/$winnerId': {
@@ -1055,10 +1135,12 @@ const rootRouteChildren: RootRouteChildren = {
   FaqRoute: FaqRoute,
   LuckyWinnerRoute: LuckyWinnerRoute,
   PartnershipRoute: PartnershipRoute,
+  PaymentMethodsRoute: PaymentMethodsRoute,
   PlayersRoute: PlayersRoute,
   PrivacyRoute: PrivacyRoute,
   ResponsibleGamingRoute: ResponsibleGamingRoute,
   ResultsRoute: ResultsRoute,
+  RobotsDottxtRoute: RobotsDottxtRoute,
   RoyalFortuneRoute: RoyalFortuneRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SlotRoute: SlotRoute,
@@ -1067,7 +1149,9 @@ const rootRouteChildren: RootRouteChildren = {
   TermsRoute: TermsRoute,
   TopscorersRoute: TopscorersRoute,
   VirtualRoute: VirtualRoute,
+  BettingCountryRoute: BettingCountryRoute,
   MatchMatchIdRoute: MatchMatchIdRoute,
+  SitemapsNameRoute: SitemapsNameRoute,
   WinnerTicketWinnerIdRoute: WinnerTicketWinnerIdRoute,
   WinnerWinnerIdRoute: WinnerWinnerIdRoute,
   ApiPublicTimeRoute: ApiPublicTimeRoute,
