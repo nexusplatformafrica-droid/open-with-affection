@@ -5,18 +5,18 @@ import type { SiteContent, Winner } from "./admin-types";
 type FsValue = Record<string, unknown>;
 
 function decode(v: FsValue): unknown {
-  if ("stringValue" in v) return v.stringValue;
-  if ("integerValue" in v) return Number(v.integerValue);
-  if ("doubleValue" in v) return Number(v.doubleValue);
-  if ("booleanValue" in v) return v.booleanValue;
+  if ("stringValue" in v) return v["stringValue"];
+  if ("integerValue" in v) return Number(v["integerValue"]);
+  if ("doubleValue" in v) return Number(v["doubleValue"]);
+  if ("booleanValue" in v) return v["booleanValue"];
   if ("nullValue" in v) return null;
-  if ("timestampValue" in v) return Date.parse(String(v.timestampValue));
+  if ("timestampValue" in v) return Date.parse(String(v["timestampValue"]));
   if ("arrayValue" in v) {
-    const vals = ((v.arrayValue as { values?: FsValue[] }).values ?? []);
+    const vals = ((v["arrayValue"] as { values?: FsValue[] }).values ?? []);
     return vals.map(decode);
   }
   if ("mapValue" in v) {
-    const f = ((v.mapValue as { fields?: Record<string, FsValue> }).fields ?? {});
+    const f = ((v["mapValue"] as { fields?: Record<string, FsValue> }).fields ?? {});
     return Object.fromEntries(Object.entries(f).map(([k, x]) => [k, decode(x)]));
   }
   return undefined;
