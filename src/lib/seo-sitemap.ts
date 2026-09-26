@@ -12,7 +12,7 @@ export type UrlEntry = {
   path: string;
   changefreq?: "always" | "hourly" | "daily" | "weekly" | "monthly" | "yearly";
   priority?: string;
-  lastmod?: string;
+  lastmod?: string | undefined;
   images?: { loc: string; title?: string }[];
 };
 
