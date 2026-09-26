@@ -10,3 +10,4 @@
 <!-- LOVABLE:END -->
 
 - Sitemaps and robots.txt are server routes that build URLs from the request host (src/lib/seo-sitemap.ts); why: no hardcoded domain, works on any published/custom domain.
+- Whop deposits: checkout created server-side (src/lib/whop.functions.ts, key in WHOP_API_KEY secret); PaymentPoller confirms via Whop payments API by plan id; why: never trust the browser for crediting.
