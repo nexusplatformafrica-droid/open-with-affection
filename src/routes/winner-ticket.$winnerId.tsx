@@ -2,26 +2,45 @@ import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { ArrowLeft, User } from "lucide-react";
 import { PageShell } from "@/components/xbet/PageShell";
 import { useSiteContent } from "@/components/admin/AdminDataContext";
+import { getWinnerSeo } from "@/lib/winner-seo.functions";
 import { WinnerTicketSection } from "@/components/xbet/WinnerSections";
 
 export const Route = createFileRoute("/winner-ticket/$winnerId")({
-  ssr: false,
-  head: () => ({
-    meta: [
-      { title: "Winning Ticket — BET PLUS+" },
-      {
-        name: "description",
-        content: "Full winning ticket breakdown: odds, stake, bonus, payout and every selection.",
-      },
-      { property: "og:title", content: "Winning Ticket — BET PLUS+" },
-      {
-        property: "og:description",
-        content: "Odds, stake, bonus, payout and all selections on this winning BET PLUS+ ticket.",
-      },
+  loader: ({ params }) => getWinnerSeo({ data: { id: params.winnerId } }),
+  head: ({ params, loaderData: w }) => {
+    const path = `/winner-ticket/${params.winnerId}`;
+    if (!w) return { meta: [{ title: "Winner — BET PLUS+" }, { name: "robots", content: "noindex" }] };
+    const amt = `UGX ${Math.round(w.amount).toLocaleString("en-US")}`;
+    const title = `Winning Ticket: ${w.name} won ${amt} | BET PLUS+`;
+    const desc = `${w.name}${w.location ? " from " + w.location : ""} won ${amt} on ${w.game} at BET PLUS+${w.legs ? `, a ${w.legs}-selection ticket` : ""}. ${w.quote}`.slice(0, 300);
+    const meta = [
+      { title },
+      { name: "description", content: desc },
+      { property: "og:title", content: title },
+      { property: "og:description", content: desc },
       { property: "og:type", content: "article" },
+      { property: "og:url", content: path },
       { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
+      ...(w.image ? [{ property: "og:image", content: w.image }, { name: "twitter:image", content: w.image }] : []),
+    ];
+    return {
+      meta,
+      links: [{ rel: "canonical", href: path }],
+      scripts: [{
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Article",
+          headline: title,
+          description: desc,
+          datePublished: new Date(w.at).toISOString(),
+          ...(w.image ? { image: [w.image] } : {}),
+          author: { "@type": "Organization", name: "BET PLUS+" },
+          publisher: { "@type": "Organization", name: "BET PLUS+" },
+        }),
+      }],
+    };
+  },
   component: WinnerTicketPage,
 });
 
