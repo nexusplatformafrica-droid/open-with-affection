@@ -265,7 +265,7 @@ function MoneyForm({ kind }: { kind: "deposit" | "withdraw" }) {
       </div>
 
       <div className="grid grid-cols-2 gap-2">
-        {methods.map((m) => (
+        {[...methods, ...(kind === "deposit" ? WHOP_METHODS : [])].map((m) => (
           <button
             key={m.id}
             onClick={() => setMethod(m.id)}
@@ -279,7 +279,7 @@ function MoneyForm({ kind }: { kind: "deposit" | "withdraw" }) {
           </button>
         ))}
       </div>
-      {active.type === "mobile" && (
+      {!whopMethod && active.type === "mobile" && (
         <div className="flex items-center gap-2 rounded-xl border border-xb-line bg-xb-panel-alt px-3 py-2">
           <span className="shrink-0 text-[13px] text-xb-text">
             {country.flag} {country.dial}
