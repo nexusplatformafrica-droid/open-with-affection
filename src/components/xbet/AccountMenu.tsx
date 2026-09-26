@@ -300,6 +300,11 @@ function MoneyForm({ kind }: { kind: "deposit" | "withdraw" }) {
         placeholder={`Amount in ${activeCurrency}`}
         className={inputCls}
       />
+      {whopMethod && usd !== null && (
+        <p className="text-[11px] text-xb-text-muted">
+          Charged ≈ USD {usd.toFixed(2)} at today's live rate
+        </p>
+      )}
       <div className="flex gap-1">
         {[
           limits.min,
