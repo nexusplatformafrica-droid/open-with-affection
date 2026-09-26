@@ -28,6 +28,46 @@ async function build(name: string): Promise<UrlEntry[]> {
       { path: "/virtual", changefreq: "hourly", priority: "0.9" },
     ];
 
+  if (name === "winners.xml" || name === "images.xml") {
+    const { fetchSiteContent } = await import("@/lib/site-content.server");
+    const c = await fetchSiteContent();
+    const winners = c.winners.filter((w) => w && w.active);
+    const img = (u: string, title: string) => (u && /^(https?:)?\//.test(u) ? [{ loc: u, title }] : []);
+    const winnerEntries: UrlEntry[] = winners.flatMap((w) => {
+      const title = `${w.name} won UGX ${Math.round(w.amount).toLocaleString("en-US")} on BET PLUS+`;
+      const lastmod = w.at ? new Date(w.at).toISOString().slice(0, 10) : undefined;
+      return [
+        { path: `/winner/${w.id}`, changefreq: "monthly" as const, priority: "0.7", lastmod, images: img(w.image, title) },
+        { path: `/winner-ticket/${w.id}`, changefreq: "monthly" as const, priority: "0.7", lastmod, images: img(w.image, `Winning ticket — ${title}`) },
+      ];
+    });
+    if (name === "winners.xml")
+      return [{ path: "/lucky-winner", changefreq: "daily", priority: "0.8" }, ...winnerEntries];
+    const live = (s: { active: boolean }) => s.active;
+    return [
+      {
+        path: "/",
+        images: [
+          { loc: "/og-image.png", title: "BET PLUS+ sports betting" },
+          { loc: "/games/hero-banner.jpg", title: "BET PLUS+ casino games" },
+          ...c.heroSlides.filter(live).flatMap((s) => img(s.image, s.title || "BET PLUS+ promotion")),
+        ],
+      },
+      {
+        path: "/slot",
+        images: [
+          ...["1xgames", "burninghot", "crash", "crystal", "scratch", "solitaire", "western"].map((t) => ({
+            loc: `/games/tile-${t}.jpg`,
+            title: `${t} slot game on BET PLUS+`,
+          })),
+          ...c.slotSlides.filter(live).flatMap((s) => img(s.image, s.title || "BET PLUS+ slot")),
+        ],
+      },
+      { path: "/lucky-winner", images: [{ loc: "/games/winner-celebration.png", title: "BET PLUS+ lucky winners" }] },
+      ...winnerEntries.filter((e) => e.images?.length),
+    ];
+  }
+
   const m = /^(matches|results|leagues|teams)-(football|basketball|tennis)\.xml$/.exec(name);
   if (!m) return [];
   const kind = m[1]!;
