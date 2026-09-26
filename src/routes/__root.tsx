@@ -84,34 +84,25 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   );
 }
 
-const SITE_URL = "https://project--45be4857-1ae8-4dab-91a7-c16382c5a0e2.lovable.app";
-
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   head: () => ({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "BET PLUS+ — Online Betting Uganda | Live Odds, Aviator & Virtual" },
+      { title: "BET PLUS+ (BetPlus) — Online Betting | Live Odds, Aviator & Virtual" },
       {
         name: "description",
         content:
-          "BET PLUS+ is Uganda's fast betting site: live football odds, Premier League, La Liga, UCL, virtual soccer, Aviator and slots, with instant Mobile Money deposits and withdrawals.",
-      },
-      {
-        name: "keywords",
-        content:
-          "betting site Uganda, online betting, live odds, football betting, Aviator game, virtual soccer, casino slots, mobile money betting, sports betting Kenya, Tanzania, Nigeria, Ghana, Zambia",
+          "BET PLUS+ (BetPlus) — sports betting for Uganda, Kenya, Tanzania, Rwanda and DR Congo: live football odds, virtual soccer, Aviator and slots, with instant Mobile Money deposits and withdrawals.",
       },
       { name: "robots", content: "index, follow, max-image-preview:large, max-snippet:-1" },
       { name: "author", content: "BET PLUS+" },
+      { name: "application-name", content: "BET PLUS+" },
+      { name: "apple-mobile-web-app-title", content: "BetPlus" },
       { property: "og:site_name", content: "BET PLUS+" },
       { property: "og:type", content: "website" },
       { property: "og:locale", content: "en_UG" },
       { name: "twitter:card", content: "summary_large_image" },
-      { property: "og:image", content: `${SITE_URL}/og-image.png` },
-      { property: "og:image:width", content: "1200" },
-      { property: "og:image:height", content: "630" },
-      { name: "twitter:image", content: `${SITE_URL}/og-image.png` },
       { name: "theme-color", content: "#0f2137" },
     ],
     links: [
@@ -131,6 +122,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { rel: "icon", href: "/favicon.png", type: "image/png" },
       { rel: "apple-touch-icon", href: "/favicon.png" },
+      { rel: "sitemap", type: "application/xml", href: "/sitemap.xml" },
     ],
     scripts: [
       {
@@ -140,36 +132,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "@graph": [
             {
               "@type": "Organization",
-              "@id": `${SITE_URL}/#organization`,
+              "@id": "#organization",
               name: "BET PLUS+",
-              url: SITE_URL,
-              logo: `${SITE_URL}/favicon.png`,
-              image: `${SITE_URL}/og-image.png`,
-              areaServed: [
-                "Uganda",
-                "Kenya",
-                "Tanzania",
-                "Rwanda",
-                "Nigeria",
-                "Ghana",
-                "Zambia",
-                "Malawi",
-                "Cameroon",
-                "DR Congo",
-              ],
+              alternateName: ["BetPlus", "Bet Plus", "BET PLUS", "Betplus Uganda"],
+              areaServed: ["Uganda", "Kenya", "Tanzania", "Rwanda", "DR Congo"],
             },
             {
               "@type": "WebSite",
-              "@id": `${SITE_URL}/#website`,
-              url: SITE_URL,
+              "@id": "#website",
               name: "BET PLUS+",
+              alternateName: ["BetPlus", "Bet Plus"],
               inLanguage: "en",
-              publisher: { "@id": `${SITE_URL}/#organization` },
-              potentialAction: {
-                "@type": "SearchAction",
-                target: `${SITE_URL}/?q={search_term_string}`,
-                "query-input": "required name=search_term_string",
-              },
+              publisher: { "@id": "#organization" },
             },
           ],
         }),
