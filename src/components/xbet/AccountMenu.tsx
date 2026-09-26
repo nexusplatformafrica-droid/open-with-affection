@@ -538,6 +538,18 @@ export function AccountMenu() {
     timer.current = setTimeout(() => setOpen(false), 220);
   };
 
+  // Header +/– buttons open the panel straight on deposit or withdraw.
+  useEffect(() => {
+    const onOpen = (e: Event) => {
+      const s = (e as CustomEvent<SectionKey>).detail;
+      setSection(s);
+      setLocked(true);
+      setOpen(true);
+    };
+    window.addEventListener("bp:open-account", onOpen);
+    return () => window.removeEventListener("bp:open-account", onOpen);
+  }, []);
+
   // When locked the panel stays put; only an outside click or the trigger closes it.
   useEffect(() => {
     if (!locked || !open) return;

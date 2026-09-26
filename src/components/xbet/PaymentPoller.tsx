@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { useAuth } from "./AuthContext";
+import { whopPlanStatus } from "@/lib/whop.functions";
 import {
   settlePaymentSession,
   watchPendingSessions,
@@ -28,6 +29,11 @@ const UNKNOWN_GRACE_MS = 10 * 60 * 1000;
 async function resolveStatus(
   session: PaymentSession,
 ): Promise<{ state: RequestStatus | "unknown"; message: string }> {
+  if (session.internalReference.startsWith("whop:")) {
+    const r = await whopPlanStatus({ data: { planId: session.internalReference.slice(5) } });
+    // Unpaid checkouts stay pending (the buyer may still be on the form) until the 24h timeout.
+    return { state: r.state === "unknown" ? "pending" : r.state, message: "Whop" };
+  }
   if (session.internalReference) {
     const res = await checkRequestStatus(session.internalReference);
     if (res.ok) {
