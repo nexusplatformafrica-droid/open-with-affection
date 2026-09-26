@@ -74,7 +74,7 @@ function WhopExpressPayment({
   reference: string;
   onComplete: () => void;
 }) {
-  const [elements, setElements] = useState<Promise<unknown> | null>(null);
+  const [elements, setElements] = useState<ComponentProps<typeof WhopElements>["elements"]>(null);
   const [walletReady, setWalletReady] = useState(false);
 
   useEffect(() => {
@@ -92,11 +92,11 @@ function WhopExpressPayment({
   }
 
   return (
-    <WhopElements elements={elements as ComponentProps<typeof WhopElements>["elements"]}>
+    <WhopElements elements={elements}>
       <Checkout
         plan={planId}
         metadata={{ reference }}
-        returnUrl={typeof window === "undefined" ? undefined : window.location.href}
+        returnUrl={window.location.href}
         onComplete={(result) => {
           if (result.result === "payment") onComplete();
         }}
