@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown, Globe } from "lucide-react";
+import { ChevronDown, Globe, Minus, Plus } from "lucide-react";
+import { convert, useFxRates } from "@/lib/fx";
 import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { AccountMenu } from "./AccountMenu";
@@ -41,7 +42,12 @@ export function Header() {
     setLoc(localeFor(countryByCode(detectCountryCode()) ?? DEFAULT_LOCALE.country));
   }, []);
 
-  const { user, balance, isAdmin, openLogin, openRegister } = useAuth();
+  const { user, balance, currency, isAdmin, openLogin, openRegister } = useAuth();
+  // Balance shown in the selected country's currency, converted at live rates.
+  const rates = useFxRates();
+  const converted = rates ? convert(balance, currency, loc.country.currency, rates) : null;
+  const shownCurrency = converted === null ? currency : loc.country.currency;
+  const shownBalance = converted === null ? balance : Math.round(converted * 100) / 100;
 
   useEffect(() => {
     if (!clockOpen) return;
@@ -67,9 +73,27 @@ export function Header() {
           <BonusMenu />
 
           {user ? (
-            <div className="flex h-7 items-center gap-2 rounded bg-white/10 px-2.5 text-[11px] text-xb-on-dark sm:px-3 sm:text-xs">
-              <span className="max-w-[110px] truncate font-bold sm:max-w-[130px]">{user.label}</span>
-              <span className="text-xb-green">{money(balance)}</span>
+            <div className="flex h-7 items-center gap-1.5 rounded bg-white/10 pl-2.5 pr-1 text-[11px] text-xb-on-dark sm:text-xs">
+              <span className="max-w-[90px] truncate font-bold sm:max-w-[130px]">{user.label}</span>
+              <span className="text-xb-green">
+                {shownCurrency} {money(shownBalance)}
+              </span>
+              <button
+                aria-label="Withdraw"
+                title="Withdraw"
+                onClick={() => window.dispatchEvent(new CustomEvent("bp:open-account", { detail: "withdraw" }))}
+                className="flex h-5 w-5 items-center justify-center rounded bg-white/15 hover:bg-white/25"
+              >
+                <Minus className="h-3 w-3" />
+              </button>
+              <button
+                aria-label="Deposit"
+                title="Deposit"
+                onClick={() => window.dispatchEvent(new CustomEvent("bp:open-account", { detail: "deposit" }))}
+                className="flex h-5 w-5 items-center justify-center rounded bg-xb-green hover:bg-xb-green-dark"
+              >
+                <Plus className="h-3 w-3" />
+              </button>
             </div>
           ) : (
             <>
