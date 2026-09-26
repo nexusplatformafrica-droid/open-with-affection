@@ -13,6 +13,7 @@ export type UrlEntry = {
   changefreq?: "always" | "hourly" | "daily" | "weekly" | "monthly" | "yearly";
   priority?: string;
   lastmod?: string;
+  images?: { loc: string; title?: string }[];
 };
 
 export function urlset(origin: string, entries: UrlEntry[]): Response {
@@ -26,6 +27,10 @@ export function urlset(origin: string, entries: UrlEntry[]): Response {
         e.lastmod ? `    <lastmod>${e.lastmod}</lastmod>` : null,
         e.changefreq ? `    <changefreq>${e.changefreq}</changefreq>` : null,
         e.priority ? `    <priority>${e.priority}</priority>` : null,
+        ...(e.images ?? []).map(
+          (im) =>
+            `    <image:image><image:loc>${esc(im.loc.startsWith("http") ? im.loc : origin + im.loc)}</image:loc>${im.title ? `<image:title>${esc(im.title)}</image:title>` : ""}</image:image>`,
+        ),
         "  </url>",
       ]
         .filter(Boolean)
@@ -33,7 +38,7 @@ export function urlset(origin: string, entries: UrlEntry[]): Response {
     )
     .join("\n");
   return xml(
-    `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${body}\n</urlset>`,
+    `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n${body}\n</urlset>`,
   );
 }
 
@@ -59,6 +64,8 @@ export const SITEMAP_NAMES = [
   "pages.xml",
   "countries.xml",
   "games.xml",
+  "winners.xml",
+  "images.xml",
   ...SPORTS.flatMap((s) => [`matches-${s}.xml`, `results-${s}.xml`, `leagues-${s}.xml`, `teams-${s}.xml`]),
 ];
 
