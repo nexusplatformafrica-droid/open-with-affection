@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
+import { WhopWallet } from "@/components/admin/WhopWallet";
 import { Btn, Field, Panel, Stat, Table, downloadCsv, inputCls } from "@/components/admin/ui";
 import {
   DEFAULT_COUNTRY,
@@ -125,6 +126,8 @@ export function ProviderWallet() {
           />
         ))}
       </div>
+
+      <WhopWallet />
 
       <div className="grid gap-2 md:gap-3 xl:grid-cols-2">
         <Panel title="Real payout from provider wallet">
