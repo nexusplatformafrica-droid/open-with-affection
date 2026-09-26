@@ -8,3 +8,5 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- Sitemaps and robots.txt are server routes that build URLs from the request host (src/lib/seo-sitemap.ts); why: no hardcoded domain, works on any published/custom domain.
