@@ -40,10 +40,10 @@ export const Route = createFileRoute("/")({
           "Live odds on 1000+ events, Aviator, virtual soccer, slots and instant Mobile Money payouts at BET PLUS+.",
       },
       { property: "og:type", content: "website" },
-      { property: "og:url", content: "https://project--45be4857-1ae8-4dab-91a7-c16382c5a0e2.lovable.app/" },
+      { property: "og:url", content: "/" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
-    links: [{ rel: "canonical", href: "https://project--45be4857-1ae8-4dab-91a7-c16382c5a0e2.lovable.app/" }],
+    links: [{ rel: "canonical", href: "/" }],
     scripts: [
       {
         type: "application/ld+json",
